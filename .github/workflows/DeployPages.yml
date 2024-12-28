@@ -10,25 +10,12 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Deploy to gh-pages
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          # GitHub token to grant permission to create/force-push the gh-pages branch
-          personal_token: ${{ secrets.GITHUB_TOKEN }}
-
-          # The folder you want to publish.
-          # If your HTML/JS is at the root, use "./".
-          # If it's in "dist" or "docs", adjust accordingly.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
-
-          # The branch name for GitHub Pages (creates it if missing)
-          publish_branch: gh-pages
-
-          # (Optional) Commit message
-          commit_message: "Deploy to GitHub Pages"
-
-          # (Optional) Sets user/email for the commit
-          user_name: "github-actions"
-          user_email: "github-actions@github.com"
+          force_orphan: true
+          commit_message: 'docs: update documentation'
