@@ -8,6 +8,8 @@ This repository hosts a minimal web page and JavaScript library for flashing Tee
 
 To test this repository go to the Github pages deployment here: https://coelacant1.github.io/Teensy-Loader-Javascript/Teensy-Loader-Example.html
 
+[![Deploy to GitHub Pages](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/DeployPages.yml/badge.svg)](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/DeployPages.yml)
+
 ---
 
 ## Repository Structure
