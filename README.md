@@ -1,16 +1,13 @@
-# GitHub Pages for Teensy Loader JavaScript
+# Teensy Loader Javascript for Chromium Browsers
 
 This repository hosts a minimal web page and JavaScript library for flashing Teensy firmware via WebHID and opening a Serial connection.
-
----
 
 ## Quick Start
 
 To test this repository go to the Github pages deployment here: https://coelacant1.github.io/Teensy-Loader-Javascript/Teensy-Loader-Example.html
 
-[![Deploy to GitHub Pages](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/DeployPages.yml/badge.svg)](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/DeployPages.yml)
-
----
+[![Deploy to GitHub Pages](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/DeployPages.yml/badge.svg?branch=main)](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/DeployPages.yml)
+[![pages-build-deployment](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/pages/pages-build-deployment/badge.svg?branch=gh-pages)](https://github.com/coelacant1/Teensy-Loader-Javascript/actions/workflows/pages/pages-build-deployment)
 
 ## Repository Structure
 
@@ -30,8 +27,6 @@ To test this repository go to the Github pages deployment here: https://coelacan
 - .github/workflows/DeployPages.yml  
   A GitHub Actions workflow file that builds and deploys this project to the gh-pages branch, allowing GitHub Pages hosting.
 
----
-
 ## Local Development
 
 1. Clone or download this repository.
@@ -42,13 +37,9 @@ python -m http.server
 3. Visit http://localhost:8000/Teensy-Loader-Example.html in your browser (Chrome or Edge) and navigate to the HTML file.
 4. Select your firmware file and click “Select Teensy Device” to pick a board via WebHID, then “Upload Firmware” to flash. You can also open or close a serial port to see debug output from the Teensy.
 
----
-
 ## Questions and Support
 
 For additional information or recommendations, use the **Discussions** tab on GitHub.
-
----
 
 ## Contributing
 
@@ -57,8 +48,6 @@ Contributions are welcome! To contribute:
 2. Commit your changes with a descriptive message (git commit -m 'Add YourFeature').
 3. Push the branch (git push origin main).
 4. Submit a pull request on GitHub.
-
----
 
 ## License Agreement
 
