@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teensy Loader Javascript Test</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #181818;
+      margin: 0;
+      padding: 0;
+      color: #CDCDCD;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      background: #1f1f1f;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      padding: 20px;
+    }
+    h1, h2 {
+      margin-top: 0;
+      font-weight: normal;
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    button {
+      background-color: #ea7aaa;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      margin: 5px 0;
+    }
+    button:hover {
+      background-color: #fa5687;
+    }
+    .section {
+      margin: 20px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    progress {
+      width: 100%;
+      height: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-top: 10px;
+      background-color: #454545;
+      resize: none;
+    }
+    a:link {
+    color: #ea7aaa;
+    }
+    a:link, a:visited, a:hover, a:focus, a:active {
+        color: #bc6b8f;
+    }
+    #status {/* Initially hide the status box until we have a status to display. */
+      display: none;
+      background: #272727;
+      padding: 8px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Teensy Loader Javascript Test</h1>
+    <p>A simple page for loading firmware, selecting a Teensy, and flashing via WebHID &amp; reading Serial.</p>
+    <p>Created by <a href="https://github.com/coelacant1">Coela Can't!</a></p>
+    <div><a href="https://github.com/coelacant1/Teensy-Loader-Javascript">Visit the Github page here, example firmware files here.</a></div>
+
+    <!-- Firmware Selection -->
+    <div class="section">
+      <h2>1. Firmware</h2>
+      <label for="firmwareInput">Select Firmware File:</label>
+      <input type="file" id="firmwareInput" accept=".hex,.bin" />
+    </div>
+
+    <!-- Device Selection & Flashing -->
+    <div class="section">
+      <h2>2. Device & Flash</h2>
+      <p>Press reset on your Teensy to get it into programming mode.</p>
+      <button id="selectDeviceBtn">Select Teensy Device</button>
+      <br />
+      <button id="uploadFirmwareBtn">Upload Firmware</button>
+      <progress id="flashProgress" value="0" max="1"></progress>
+    </div>
+
+    <!-- Status Output -->
+    <div class="section">
+        <div id="status">No status yet.</div>
+    </div>
+
+    <!-- Serial Port -->
+    <div class="section">
+      <h2>3. Serial Port</h2>
+      <button id="openSerialBtn">Open Serial</button>
+      <button id="closeSerialBtn">Close Serial</button>
+      <textarea id="log" readonly placeholder="Serial output will appear here..."></textarea>
+    </div>
+  </div>
+
+  <!-- Load the teensy-library.js from the same directory -->
+  <script type="module">
+    import {
+      FirmwareFile,
+      TeensyFlasher,
+      SerialPortManager,
+      TEENSY_DEVICE_FILTERS
+    } from './Teensy-Loader.js'; // relative import
+
+
+    let selectedDevice = null;
+    let firmwareData = null;
+    let firmwareName = null;
+
+    const flasher = new TeensyFlasher();
+    const serialManager = new SerialPortManager();
+    
+    /**
+     * Helper to update both a status box in the UI and the console.
+     * If message is empty or null, hides the status box.
+     * @param {string} message 
+     */
+     function setStatus(message) {
+      const statusElem = document.getElementById('status');
+      if (!message) {
+        // hide the status area if no message
+        statusElem.style.display = 'none';
+        statusElem.textContent = '';
+        return;
+      }
+      console.log(message);
+      statusElem.style.display = 'block';
+      statusElem.textContent = message;
+    }
+
+    // Whenever the SerialPortManager receives a line, append it to the text area
+    serialManager.onData = (line) => {
+      const logArea = document.getElementById('log');
+      logArea.value += (logArea.value ? '\n' : '') + line;
+      logArea.scrollTop = logArea.scrollHeight;
+    };
+
+    // 1. Handle Firmware File Selection
+    document.getElementById('firmwareInput').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          firmwareData = new Uint8Array(reader.result);
+          firmwareName = file.name;
+          setStatus(`Firmware loaded: ${firmwareName}`);
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    });
+
+    // 2. Select Teensy Device
+    document.getElementById('selectDeviceBtn').addEventListener('click', async () => {
+      try {
+        const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
+        if (devices && devices.length > 0) {
+          selectedDevice = devices[0];
+          setStatus(`Device selected: ${selectedDevice.productName || 'Unknown Teensy'}`);
+        } else {
+          setStatus('No device selected.');
+        }
+      } catch (error) {
+        setStatus(`Device selection error: ${error}`);
+        console.error('Device selection error:', error);
+      }
+    });
+
+    // 3. Upload Firmware
+    document.getElementById('uploadFirmwareBtn').addEventListener('click', async () => {
+      if (!selectedDevice || !firmwareData) {
+        setStatus('No device or firmware selected.');
+        return;
+      }
+
+      // Determine offset based on productId (Teensy 4.x vs 3.x)
+      let offset = 0x00000000;
+      if (selectedDevice.productId === 0x0478 || selectedDevice.productId === 0x0479) {
+        // Teensy 4.0 or 4.1
+        offset = 0x60000000;
+      }
+
+      try {
+        const fw = new FirmwareFile(firmwareData, firmwareName);
+        const blocks = await fw.buildBlocks(offset);
+
+        document.getElementById('flashProgress').value = 0;
+        setStatus('Flashing firmware...');
+
+        await flasher.flashFirmware(blocks, selectedDevice, (progress) => {
+          document.getElementById('flashProgress').value = progress;
+        });
+
+        setStatus('Flash complete!');
+      } catch (err) {
+        setStatus(`Flashing error: ${err}`);
+        console.error('Flashing error:', err);
+      }
+    });
+
+    // 4. Open Serial Port
+    document.getElementById('openSerialBtn').addEventListener('click', async () => {
+      try {
+        await serialManager.openSerialPort({ baudRate: 115200 });
+        setStatus('Serial opened.');
+      } catch (err) {
+        setStatus(`Serial open error: ${err}`);
+        console.error('Serial open error:', err);
+      }
+    });
+
+    // 5. Close Serial Port
+    document.getElementById('closeSerialBtn').addEventListener('click', async () => {
+      try {
+        await serialManager.closeSerialPort();
+        setStatus('Serial closed.');
+      } catch (err) {
+        setStatus(`Serial close error: ${err}`);
+        console.error('Serial close error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

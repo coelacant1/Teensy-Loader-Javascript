@@ -1,0 +1,34 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # GitHub token to grant permission to create/force-push the gh-pages branch
+          personal_token: ${{ secrets.GITHUB_TOKEN }}
+
+          # The folder you want to publish.
+          # If your HTML/JS is at the root, use "./".
+          # If it's in "dist" or "docs", adjust accordingly.
+          publish_dir: ./
+
+          # The branch name for GitHub Pages (creates it if missing)
+          publish_branch: gh-pages
+
+          # (Optional) Commit message
+          commit_message: "Deploy to GitHub Pages"
+
+          # (Optional) Sets user/email for the commit
+          user_name: "github-actions"
+          user_email: "github-actions@github.com"
