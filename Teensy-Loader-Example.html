@@ -83,8 +83,9 @@
     <!-- Firmware Selection -->
     <div class="section">
       <h2>1. Firmware</h2>
-      <label for="firmwareInput">Select Firmware File:</label>
-      <input type="file" id="firmwareInput" accept=".hex,.bin" />
+      <p>Parses Intel HEX for single .hex, in .ehex it sends the .hex data to flash and loader program to memory, and .bin sends raw data.</p>
+      <label for="firmwareInput">Select Firmware File (.hex, .ehex, .bin):</label>
+      <input type="file" id="firmwareInput" accept=".hex,.ehex,.bin" />
     </div>
 
     <!-- Device Selection & Flashing -->
